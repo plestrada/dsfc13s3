@@ -5,7 +5,4 @@ matplotlib
 seaborn
 nltk
 openai
-scikit-learn
 scikit-llm
-Unidecode
-beautifulsoup4
