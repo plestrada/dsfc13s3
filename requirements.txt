@@ -5,4 +5,5 @@ matplotlib
 seaborn
 nltk
 openai
+scikit-learn
 scikit-llm
