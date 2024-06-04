@@ -70,6 +70,11 @@ def extract_keywords(text):
 
 
 ###
+
+df = pd.read_csv("data/rappler-2024.csv").sort_values('date', ascending=False)
+df['title.cleaned'] = df['title.rendered'].apply(preprocess_text)
+df['content.cleaned'] = df['content.rendered'].apply(preprocess_text)
+
 my_page = st.sidebar.radio('Page Navigation',
                            ['About the data', 'Interactive highlights', 
                             'News summarization', 
@@ -81,8 +86,6 @@ if my_page == 'About the data':
     st.markdown("This Streamlit app provides comprehensive analysis and exploration of the latest Rappler news data. Designed for **Eskwelabs Data Science Fellowship Cohort 13.**")
 
     st.header("Preview of the dataset")
-
-    df = pd.read_csv("data/rappler-2024.csv")
     st.write(df.head())
 
     st.header("Quick stats from Rappler news articles")
@@ -102,12 +105,8 @@ if my_page == 'About the data':
     st.pyplot(fig)
     
 elif my_page == 'Interactive highlights':
-    st.title('Interacting with the Rappler dataset')
-    df = pd.read_csv("data/rappler-2024.csv")
+    st.title('Interacting with the Rappler dataset')    
     
-    df['title.cleaned'] = df['title.rendered'].apply(preprocess_text)
-    df['content.cleaned'] = df['content.rendered'].apply(preprocess_text)
-
     keywords = st.text_input(
         label='Keywords for filtering the data. If multiple keywords, make a comma-separated list',
         value=''
@@ -169,11 +168,7 @@ elif my_page == 'Interactive highlights':
         
 elif my_page == 'News summarization':    
     st.title('Summarizing Rappler articles')
-    df = pd.read_csv("data/rappler-2024.csv").sort_values('date', ascending=False)
     
-    df['title.cleaned'] = df['title.rendered'].apply(preprocess_text)
-    df['content.cleaned'] = df['content.rendered'].apply(preprocess_text)
-
     title = st.selectbox('Select article title', df['title.cleaned'], index=None)
     
     if title:
@@ -206,16 +201,16 @@ elif my_page == 'News summarization':
                 
 elif my_page == 'Sentiment-based recommendations':
     st.title('Recommending articles based on predicted sentiments')
-    df = pd.read_csv("data/schools-sentiment-labeled.csv").sort_values(
+    df_sample = pd.read_csv("data/schools-sentiment-labeled.csv").sort_values(
         'date', ascending=False
     )
     
     title = st.selectbox(
-        'Select article title', df['title.cleaned'], index=None
+        'Select article title', df_sample['title.cleaned'], index=None
     )
     
     if title:
-        article = df[df['title.cleaned']==title].iloc[0]
+        article = df_sample[df_sample['title.cleaned']==title].iloc[0]
                            
         col1, col2 = st.columns([3,1])
         col1.header(f"[{article['title.cleaned']}]({article['link']})")
@@ -231,7 +226,7 @@ elif my_page == 'Sentiment-based recommendations':
         col1.write(article['content.cleaned'])
               
         col2.caption('**SUGGESTED STORIES**')
-        suggestions = df[df['gpt_sentiment']==article_sentiment].sample(3)
+        suggestions = df_sample[df_sample['gpt_sentiment']==article_sentiment].sample(3)
         
         for i, suggestion in suggestions.iterrows():
             col2.subheader(f"{suggestion['title.cleaned']}")
@@ -240,12 +235,6 @@ elif my_page == 'Sentiment-based recommendations':
         
 elif my_page == 'Keyword extraction':
     st.title('Tagging articles with their most relevant keywords')
-    df = pd.read_csv("data/rappler-2024.csv").sort_values(
-        'date', ascending=False
-    )
-
-    df['title.cleaned'] = df['title.rendered'].apply(preprocess_text)
-    df['content.cleaned'] = df['content.rendered'].apply(preprocess_text)
     
     title = st.selectbox(
         'Select article title', df['title.cleaned'], index=None
