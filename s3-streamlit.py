@@ -12,6 +12,9 @@ from skllm.models.gpt.classification.zero_shot import ZeroShotGPTClassifier
 import openai
 from openai import OpenAI
 
+nltk.download('punkt')
+nltk.download('stopwords')
+
 ###
 
 api_key = open('openaiapikey.txt').read()
