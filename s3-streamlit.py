@@ -63,7 +63,7 @@ if my_page == 'About the data':
 
     st.header("Preview of the dataset")
 
-    df = pd.read_csv("data/rappler-2024.csv")
+    df = pd.read_csv("data/rappler-2024-cleaned-st.csv")
     st.write(df.head())
 
     st.header("Quick stats from Rappler news articles")
@@ -84,7 +84,7 @@ if my_page == 'About the data':
     
 elif my_page == 'Interactive highlights':
     st.title('Interacting with the Rappler dataset')
-    df = pd.read_csv("data/rappler-2024.csv")
+    df = pd.read_csv("data/rappler-2024-cleaned-st.csv")
 
     keywords = st.text_input(
         label='Keywords for filtering the data. If multiple keywords, make a comma-separated list',
@@ -118,7 +118,7 @@ elif my_page == 'Interactive highlights':
         # Add bigram plot for filtered data
         st.header('Top bigrams from the filtered dataset')
         
-        content = df['content.rendered'].str.cat(sep=' ')
+        content = df['content.cleaned'].str.cat(sep=' ')
         tokens = word_tokenize(content)
         tokens = [word.lower() for word in tokens
                   if word not in stopwords.words('english')
@@ -147,14 +147,14 @@ elif my_page == 'Interactive highlights':
         
 elif my_page == 'News summarization':    
     st.title('Summarizing Rappler articles')
-    df = pd.read_csv("data/rappler-2024.csv").sort_values('date', ascending=False)
+    df = pd.read_csv("data/rappler-2024-cleaned-st.csv").sort_values('date', ascending=False)
     
-    title = st.selectbox('Select article title', df['title.rendered'], index=None)
+    title = st.selectbox('Select article title', df['title.cleaned'], index=None)
     
     if title:
-        article = df[df['title.rendered']==title].iloc[0]
+        article = df[df['title.cleaned']==title].iloc[0]
            
-        st.header(f"[{article['title.rendered']}]({article['link']})")
+        st.header(f"[{article['title.cleaned']}]({article['link']})")
         st.caption(f"__Published date:__ {article['date']}")
                 
         col1, col2 = st.columns([3,1])
@@ -173,11 +173,11 @@ elif my_page == 'News summarization':
 
         if summary_button:
             st.subheader('Summary')
-            article_summary = s.fit_transform([article['content.rendered']])[0]
+            article_summary = s.fit_transform([article['content.cleaned']])[0]
             st.write(article_summary)
         
         st.subheader('Full article content')
-        st.write(article['content.rendered'])
+        st.write(article['content.cleaned'])
                 
 elif my_page == 'Sentiment-based recommendations':
     st.title('Recommending articles based on predicted sentiments')
@@ -215,22 +215,22 @@ elif my_page == 'Sentiment-based recommendations':
         
 elif my_page == 'Keyword extraction':
     st.title('Tagging articles with their most relevant keywords')
-    df = pd.read_csv("data/rappler-2024.csv").sort_values(
+    df = pd.read_csv("data/rappler-2024-cleaned-st.csv").sort_values(
         'date', ascending=False
     )
     
     title = st.selectbox(
-        'Select article title', df['title.rendered'], index=None
+        'Select article title', df['title.cleaned'], index=None
     )
     
     if title:
-        article = df[df['title.rendered']==title].iloc[0]
+        article = df[df['title.cleaned']==title].iloc[0]
                            
-        st.header(f"[{article['title.rendered']}]({article['link']})")
+        st.header(f"[{article['title.cleaned']}]({article['link']})")
         st.caption(f"__Published date:__ {article['date']}")
 
         st.caption('**TOP KEYWORDS**')
-        top_keywords = extract_keywords(article['content.rendered'])
+        top_keywords = extract_keywords(article['content.cleaned'])
 
         highlighted_keywords = ""
         for i, keyword in enumerate(top_keywords):
@@ -239,4 +239,4 @@ elif my_page == 'Keyword extraction':
         st.markdown(highlighted_keywords, unsafe_allow_html=True) 
         
         st.subheader('Full article content')
-        st.write(article['content.rendered'])
+        st.write(article['content.cleaned'])
