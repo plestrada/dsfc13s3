@@ -4,9 +4,6 @@ import matplotlib.pyplot as plt
 import nltk
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
-from bs4 import BeautifulSoup
-from unidecode import unidecode
-import re
 from skllm.config import SKLLMConfig
 # from skllm.preprocessing import GPTSummarizer
 # from skllm import ZeroShotGPTClassifier
@@ -22,26 +19,6 @@ SKLLMConfig.set_openai_key(api_key)
 client = OpenAI(api_key=api_key)
 
 ###
-@st.cache_data()
-def preprocess_text(text):
-    if not isinstance(text, str):
-        return text
-
-    text = unidecode(text)
-    
-    pattern = re.compile(r'[\t\n]|<.*?>|!function.*;|\.igframe.*}')
-    text = pattern.sub(' ', text)
-    text = (
-        text
-        .replace('&#8217;', "'")
-        .replace('&#8220;', '"')
-        .replace('&#8221;', '"')
-    )
-
-    soup = BeautifulSoup(text, 'html.parser')
-    cleaned_text = soup.get_text()
-    return cleaned_text
-
 def extract_keywords(text):
     system_prompt = 'You are a news analyst assistant tasked to extract keywords from news articles.'
 
@@ -71,9 +48,7 @@ def extract_keywords(text):
 
 ###
 
-df = pd.read_csv("data/rappler-2024.csv").sort_values('date', ascending=False)
-df['title.cleaned'] = df['title.rendered'].apply(preprocess_text)
-df['content.cleaned'] = df['content.rendered'].apply(preprocess_text)
+df = pd.read_csv("data/schools-sentiment-labeled.csv").sort_values('date', ascending=False)
 
 my_page = st.sidebar.radio('Page Navigation',
                            ['About the data', 'Interactive highlights', 
@@ -201,16 +176,13 @@ elif my_page == 'News summarization':
                 
 elif my_page == 'Sentiment-based recommendations':
     st.title('Recommending articles based on predicted sentiments')
-    df_sample = pd.read_csv("data/schools-sentiment-labeled.csv").sort_values(
-        'date', ascending=False
-    )
     
     title = st.selectbox(
-        'Select article title', df_sample['title.cleaned'], index=None
+        'Select article title', df['title.cleaned'], index=None
     )
     
     if title:
-        article = df_sample[df_sample['title.cleaned']==title].iloc[0]
+        article = df[df['title.cleaned']==title].iloc[0]
                            
         col1, col2 = st.columns([3,1])
         col1.header(f"[{article['title.cleaned']}]({article['link']})")
@@ -226,7 +198,7 @@ elif my_page == 'Sentiment-based recommendations':
         col1.write(article['content.cleaned'])
               
         col2.caption('**SUGGESTED STORIES**')
-        suggestions = df_sample[df_sample['gpt_sentiment']==article_sentiment].sample(3)
+        suggestions = df[df['gpt_sentiment']==article_sentiment].sample(3)
         
         for i, suggestion in suggestions.iterrows():
             col2.subheader(f"{suggestion['title.cleaned']}")
