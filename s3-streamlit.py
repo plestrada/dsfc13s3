@@ -19,6 +19,7 @@ SKLLMConfig.set_openai_key(api_key)
 client = OpenAI(api_key=api_key)
 
 ###
+
 def extract_keywords(text):
     system_prompt = 'You are a news analyst assistant tasked to extract keywords from news articles.'
 
@@ -47,9 +48,6 @@ def extract_keywords(text):
 
 
 ###
-
-df = pd.read_csv("data/schools-sentiment-labeled.csv").sort_values('date', ascending=False)
-
 my_page = st.sidebar.radio('Page Navigation',
                            ['About the data', 'Interactive highlights', 
                             'News summarization', 
@@ -61,6 +59,8 @@ if my_page == 'About the data':
     st.markdown("This Streamlit app provides comprehensive analysis and exploration of the latest Rappler news data. Designed for **Eskwelabs Data Science Fellowship Cohort 13.**")
 
     st.header("Preview of the dataset")
+
+    df = pd.read_csv("data/rappler-2024.csv")
     st.write(df.head())
 
     st.header("Quick stats from Rappler news articles")
@@ -80,8 +80,9 @@ if my_page == 'About the data':
     st.pyplot(fig)
     
 elif my_page == 'Interactive highlights':
-    st.title('Interacting with the Rappler dataset')    
-    
+    st.title('Interacting with the Rappler dataset')
+    df = pd.read_csv("data/rappler-2024.csv")
+
     keywords = st.text_input(
         label='Keywords for filtering the data. If multiple keywords, make a comma-separated list',
         value=''
@@ -113,8 +114,8 @@ elif my_page == 'Interactive highlights':
     
         # Add bigram plot for filtered data
         st.header('Top bigrams from the filtered dataset')
-
-        content = df['content.cleaned'].str.cat(sep=' ')
+        
+        content = df['content.rendered'].str.cat(sep=' ')
         tokens = word_tokenize(content)
         tokens = [word.lower() for word in tokens
                   if word not in stopwords.words('english')
@@ -143,13 +144,14 @@ elif my_page == 'Interactive highlights':
         
 elif my_page == 'News summarization':    
     st.title('Summarizing Rappler articles')
+    df = pd.read_csv("data/rappler-2024.csv").sort_values('date', ascending=False)
     
-    title = st.selectbox('Select article title', df['title.cleaned'], index=None)
+    title = st.selectbox('Select article title', df['title.rendered'], index=None)
     
     if title:
-        article = df[df['title.cleaned']==title].iloc[0]
+        article = df[df['title.rendered']==title].iloc[0]
            
-        st.header(f"[{article['title.cleaned']}]({article['link']})")
+        st.header(f"[{article['title.rendered']}]({article['link']})")
         st.caption(f"__Published date:__ {article['date']}")
                 
         col1, col2 = st.columns([3,1])
@@ -168,14 +170,17 @@ elif my_page == 'News summarization':
 
         if summary_button:
             st.subheader('Summary')
-            article_summary = s.fit_transform([article['content.cleaned']])[0]
+            article_summary = s.fit_transform([article['content.rendered']])[0]
             st.write(article_summary)
         
         st.subheader('Full article content')
-        st.write(article['content.cleaned'])
+        st.write(article['content.rendered'])
                 
 elif my_page == 'Sentiment-based recommendations':
     st.title('Recommending articles based on predicted sentiments')
+    df = pd.read_csv("data/schools-sentiment-labeled.csv").sort_values(
+        'date', ascending=False
+    )
     
     title = st.selectbox(
         'Select article title', df['title.cleaned'], index=None
@@ -207,19 +212,22 @@ elif my_page == 'Sentiment-based recommendations':
         
 elif my_page == 'Keyword extraction':
     st.title('Tagging articles with their most relevant keywords')
+    df = pd.read_csv("data/rappler-2024.csv").sort_values(
+        'date', ascending=False
+    )
     
     title = st.selectbox(
-        'Select article title', df['title.cleaned'], index=None
+        'Select article title', df['title.rendered'], index=None
     )
     
     if title:
-        article = df[df['title.cleaned']==title].iloc[0]
+        article = df[df['title.rendered']==title].iloc[0]
                            
-        st.header(f"[{article['title.cleaned']}]({article['link']})")
+        st.header(f"[{article['title.rendered']}]({article['link']})")
         st.caption(f"__Published date:__ {article['date']}")
 
         st.caption('**TOP KEYWORDS**')
-        top_keywords = extract_keywords(article['content.cleaned'])
+        top_keywords = extract_keywords(article['content.rendered'])
 
         highlighted_keywords = ""
         for i, keyword in enumerate(top_keywords):
@@ -228,6 +236,4 @@ elif my_page == 'Keyword extraction':
         st.markdown(highlighted_keywords, unsafe_allow_html=True) 
         
         st.subheader('Full article content')
-        st.write(article['content.cleaned'])
-    
-        
+        st.write(article['content.rendered'])
