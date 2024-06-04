@@ -4,6 +4,9 @@ import matplotlib.pyplot as plt
 import nltk
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
+from bs4 import BeautifulSoup
+from unidecode import unidecode
+import re
 from skllm.config import SKLLMConfig
 # from skllm.preprocessing import GPTSummarizer
 # from skllm import ZeroShotGPTClassifier
@@ -19,6 +22,24 @@ SKLLMConfig.set_openai_key(api_key)
 client = OpenAI(api_key=api_key)
 
 ###
+def preprocess_text(text):
+    if not isinstance(text, str):
+        return text
+
+    text = unidecode(text)
+    
+    pattern = re.compile(r'[\t\n]|<.*?>|!function.*;|\.igframe.*}')
+    text = pattern.sub(' ', text)
+    text = (
+        text
+        .replace('&#8217;', "'")
+        .replace('&#8220;', '"')
+        .replace('&#8221;', '"')
+    )
+
+    soup = BeautifulSoup(text, 'html.parser')
+    cleaned_text = soup.get_text()
+    return cleaned_text
 
 def extract_keywords(text):
     system_prompt = 'You are a news analyst assistant tasked to extract keywords from news articles.'
@@ -60,7 +81,7 @@ if my_page == 'About the data':
 
     st.header("Preview of the dataset")
 
-    df = pd.read_csv("data/rappler-2024-cleaned.csv")
+    df = pd.read_csv("data/rappler-2024.csv")
     st.write(df.head())
 
     st.header("Quick stats from Rappler news articles")
@@ -81,7 +102,10 @@ if my_page == 'About the data':
     
 elif my_page == 'Interactive highlights':
     st.title('Interacting with the Rappler dataset')
-    df = pd.read_csv("data/rappler-2024-cleaned.csv")
+    df = pd.read_csv("data/rappler-2024.csv")
+    
+    df['title.cleaned'] = df['title.rendered'].apply(preprocess_text)
+    df['content.cleaned'] = df['content.rendered'].apply(preprocess_text)
 
     keywords = st.text_input(
         label='Keywords for filtering the data. If multiple keywords, make a comma-separated list',
@@ -114,7 +138,7 @@ elif my_page == 'Interactive highlights':
     
         # Add bigram plot for filtered data
         st.header('Top bigrams from the filtered dataset')
-        
+
         content = df['content.cleaned'].str.cat(sep=' ')
         tokens = word_tokenize(content)
         tokens = [word.lower() for word in tokens
@@ -144,8 +168,11 @@ elif my_page == 'Interactive highlights':
         
 elif my_page == 'News summarization':    
     st.title('Summarizing Rappler articles')
-    df = pd.read_csv("data/rappler-2024-cleaned.csv").sort_values('date', ascending=False)
+    df = pd.read_csv("data/rappler-2024.csv").sort_values('date', ascending=False)
     
+    df['title.cleaned'] = df['title.rendered'].apply(preprocess_text)
+    df['content.cleaned'] = df['content.rendered'].apply(preprocess_text)
+
     title = st.selectbox('Select article title', df['title.cleaned'], index=None)
     
     if title:
@@ -212,9 +239,12 @@ elif my_page == 'Sentiment-based recommendations':
         
 elif my_page == 'Keyword extraction':
     st.title('Tagging articles with their most relevant keywords')
-    df = pd.read_csv("data/rappler-2024-cleaned.csv").sort_values(
+    df = pd.read_csv("data/rappler-2024.csv").sort_values(
         'date', ascending=False
     )
+
+    df['title.cleaned'] = df['title.rendered'].apply(preprocess_text)
+    df['content.cleaned'] = df['content.rendered'].apply(preprocess_text)
     
     title = st.selectbox(
         'Select article title', df['title.cleaned'], index=None
