@@ -6,8 +6,9 @@ from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 from skllm.config import SKLLMConfig
 # from skllm.preprocessing import GPTSummarizer
+# from skllm import ZeroShotGPTClassifier
 from skllm.models.gpt.text2text.summarization import GPTSummarizer
-from skllm import ZeroShotGPTClassifier
+from skllm.models.gpt.classification.zero_shot import ZeroShotGPTClassifier
 import openai
 from openai import OpenAI
 
