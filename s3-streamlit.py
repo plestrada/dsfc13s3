@@ -169,7 +169,7 @@ elif my_page == 'News summarization':
             if focus == '':
                 focus = None
         
-        s = GPTSummarizer(openai_model='gpt-3.5-turbo', max_words=50, focus=focus)
+        s = GPTSummarizer(model='gpt-3.5-turbo', max_words=50, focus=focus)
 
         if summary_button:
             st.subheader('Summary')
@@ -196,7 +196,7 @@ elif my_page == 'Sentiment-based recommendations':
         col1.header(f"[{article['title.cleaned']}]({article['link']})")
         col1.caption(f"__Published date:__ {article['date']}")
         
-        clf = ZeroShotGPTClassifier(openai_model="gpt-3.5-turbo")
+        clf = ZeroShotGPTClassifier(model="gpt-3.5-turbo")
         clf.fit(None, ["Positive", "Negative", "Neutral"])
         article_sentiment = clf.predict([article['content.cleaned']])[0]
         
