@@ -5,8 +5,6 @@ import nltk
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 from skllm.config import SKLLMConfig
-# from skllm.preprocessing import GPTSummarizer
-# from skllm import ZeroShotGPTClassifier
 from skllm.models.gpt.text2text.summarization import GPTSummarizer
 from skllm.models.gpt.classification.zero_shot import ZeroShotGPTClassifier
 import openai
@@ -14,6 +12,10 @@ from openai import OpenAI
 
 nltk.download('punkt')
 nltk.download('stopwords')
+
+###
+
+st.set_page_config(layout='wide')
 
 ###
 
@@ -63,7 +65,7 @@ if my_page == 'About the data':
 
     st.header("Preview of the dataset")
 
-    df = pd.read_csv("data/rappler-2024-cleaned-st.csv")
+    df = pd.read_csv("data/rappler-2024-cleaned.csv")
     st.write(df.head())
 
     st.header("Quick stats from Rappler news articles")
@@ -84,7 +86,7 @@ if my_page == 'About the data':
     
 elif my_page == 'Interactive highlights':
     st.title('Interacting with the Rappler dataset')
-    df = pd.read_csv("data/rappler-2024-cleaned-st.csv")
+    df = pd.read_csv("data/rappler-2024-cleaned.csv")
 
     keywords = st.text_input(
         label='Keywords for filtering the data. If multiple keywords, make a comma-separated list',
@@ -145,11 +147,15 @@ elif my_page == 'Interactive highlights':
         
         st.pyplot(fig)
         
-elif my_page == 'News summarization':    
+elif my_page == 'News summarization':
     st.title('Summarizing Rappler articles')
-    df = pd.read_csv("data/rappler-2024-cleaned-st.csv").sort_values('date', ascending=False)
+    df = pd.read_csv("data/rappler-2024-cleaned-st.csv").sort_values(
+        'date', ascending=False
+    )
     
-    title = st.selectbox('Select article title', df['title.cleaned'], index=None)
+    title = st.selectbox(
+        'Select article title', df['title.cleaned'], index=None
+    )
     
     if title:
         article = df[df['title.cleaned']==title].iloc[0]
@@ -159,7 +165,10 @@ elif my_page == 'News summarization':
                 
         col1, col2 = st.columns([3,1])
 
-        focused_summary_toggle = col1.toggle('Make focused summary', value=False)
+        focused_summary_toggle = col1.toggle(
+            'Make focused summary', value=False
+        )
+        
         summary_button = col2.button('Summarize article')
         
         focus = None
@@ -169,16 +178,19 @@ elif my_page == 'News summarization':
             if focus == '':
                 focus = None
         
-        s = GPTSummarizer(model='gpt-3.5-turbo', max_words=50, focus=focus)
+        s = GPTSummarizer(
+            model='gpt-3.5-turbo', max_words=50, focus=focus
+        )
 
         if summary_button:
             st.subheader('Summary')
             article_summary = s.fit_transform([article['content.cleaned']])[0]
             st.write(article_summary)
         
-        st.subheader('Full article content')
+        st.subheader('Article content')
         st.write(article['content.cleaned'])
-                
+        
+        
 elif my_page == 'Sentiment-based recommendations':
     st.title('Recommending articles based on predicted sentiments')
     df = pd.read_csv("data/schools-sentiment-labeled.csv").sort_values(
@@ -211,7 +223,7 @@ elif my_page == 'Sentiment-based recommendations':
         for i, suggestion in suggestions.iterrows():
             col2.subheader(f"{suggestion['title.cleaned']}")
             col2.write(f"[Link to the article]({suggestion['link']})")
-           
+            
         
 elif my_page == 'Keyword extraction':
     st.title('Tagging articles with their most relevant keywords')
