@@ -22,6 +22,7 @@ SKLLMConfig.set_openai_key(api_key)
 client = OpenAI(api_key=api_key)
 
 ###
+@st.cache()
 def preprocess_text(text):
     if not isinstance(text, str):
         return text
