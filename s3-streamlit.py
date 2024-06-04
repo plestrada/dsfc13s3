@@ -10,6 +10,8 @@ from skllm.models.gpt.classification.zero_shot import ZeroShotGPTClassifier
 import openai
 from openai import OpenAI
 
+import streamlit.secrets as secrets
+
 nltk.download('punkt')
 nltk.download('stopwords')
 
@@ -19,7 +21,7 @@ st.set_page_config(layout='wide')
 
 ###
 
-api_key = open('openaiapikey.txt').read()
+api_key = secrets["api_key"]
 SKLLMConfig.set_openai_key(api_key)
 client = OpenAI(api_key=api_key)
 
